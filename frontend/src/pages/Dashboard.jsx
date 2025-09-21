@@ -1,32 +1,21 @@
 import React, { useState, useEffect } from "react";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import MessageForm from "../components/MessageForm";
 import MessageList from "../components/MessageList";
 import { motion } from "framer-motion";
 import gsap from "gsap";
-import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
   const [refresh, setRefresh] = useState(false);
-  const [showForm, setShowForm] = useState(false); // toggle new message form
-  const navigate = useNavigate();
+  const [showForm, setShowForm] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
   const user = JSON.parse(localStorage.getItem("user"));
 
-  // Animate page load
+  // Animate on load
   useEffect(() => {
-    gsap.from(".dashboard-header", { opacity: 0, y: -50, duration: 1 });
-    gsap.from(".dashboard-btns button", {
-      opacity: 0,
-      y: 20,
-      duration: 1,
-      stagger: 0.2,
-    });
+    gsap.from(".dashboard-header", { y: -50, opacity: 0, duration: 1 });
   }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/");
-  };
 
   const handleRefresh = () => setRefresh(!refresh);
 
@@ -36,52 +25,47 @@ const Dashboard = () => {
     );
     if (latestMessage) {
       await navigator.clipboard.writeText(latestMessage.textContent);
-      alert("Latest message copied!");
+      alert("✅ Latest message copied!");
+    }
+  };
+
+  const handleCopyAll = async () => {
+    const allMessages = [...document.querySelectorAll(".message-body")]
+      .map((el) => el.textContent)
+      .join("\n\n---\n\n");
+    if (allMessages) {
+      await navigator.clipboard.writeText(allMessages);
+      alert("📋 All messages copied!");
+    }
+  };
+
+  const handleClearMessages = () => {
+    if (window.confirm("⚠️ Clear all messages locally?")) {
+      document.querySelectorAll(".message-card").forEach((el) => el.remove());
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-200 to-blue-100 p-4 md:p-6">
-      <motion.div
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.8 }}
-        className="max-w-6xl mx-auto"
-      >
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-center mb-6 dashboard-header gap-4">
-          <h1 className="text-3xl md:text-4xl font-extrabold text-purple-700">
-            DevUpSociety Hub
+    <div
+      className={`flex flex-col min-h-screen ${
+        darkMode
+          ? "bg-gray-900 text-gray-100"
+          : "bg-gradient-to-br from-purple-200 to-blue-100 text-gray-800"
+      }`}
+    >
+      {/* Navbar */}
+      <Navbar darkMode={darkMode} setDarkMode={setDarkMode} user={user} />
+
+      {/* Main Content */}
+      <main className="flex-1 p-6 md:p-10">
+        {/* Dashboard Header */}
+        <div className="dashboard-header mb-6">
+          <h1 className="text-3xl md:text-4xl font-extrabold text-purple-700 dark:text-purple-400">
+            📢 DevUpSociety Hub
           </h1>
-          <div className="flex flex-wrap items-center gap-3 dashboard-btns">
-            <span className="text-gray-700 font-semibold">
-              👤 {user?.name} | {user?.role} | {user?.team}
-            </span>
-            <button
-              onClick={handleLogout}
-              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded shadow-lg transition-all duration-300"
-            >
-              Logout
-            </button>
-            <button
-              onClick={handleRefresh}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded shadow-lg transition-all duration-300"
-            >
-              Refresh Messages
-            </button>
-            <button
-              onClick={() => setShowForm(!showForm)}
-              className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded shadow-lg transition-all duration-300"
-            >
-              {showForm ? "Close Form" : "New Message"}
-            </button>
-            <button
-              onClick={handleCopyLatest}
-              className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded shadow-lg transition-all duration-300"
-            >
-              Copy Latest
-            </button>
-          </div>
+          <p className="text-gray-600 dark:text-gray-400">
+            Share, copy & collaborate in real-time 🚀
+          </p>
         </div>
 
         {/* Conditional Message Form */}
@@ -90,7 +74,7 @@ const Dashboard = () => {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.6 }}
-            className="bg-white backdrop-blur-md bg-opacity-60 rounded-xl shadow-xl p-6 mb-6"
+            className="bg-white/70 dark:bg-gray-800/50 backdrop-blur-lg rounded-xl shadow-xl p-6 mb-6"
           >
             <MessageForm
               onMessageSent={() => {
@@ -101,6 +85,40 @@ const Dashboard = () => {
           </motion.div>
         )}
 
+        {/* Actions */}
+        <div className="flex flex-wrap gap-4 mb-6">
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="px-4 py-2 rounded-lg bg-green-500 hover:bg-green-600 text-white shadow"
+          >
+            {showForm ? "Close Form" : "New Message"}
+          </button>
+          <button
+            onClick={handleRefresh}
+            className="px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white shadow"
+          >
+            Refresh
+          </button>
+          <button
+            onClick={handleCopyLatest}
+            className="px-4 py-2 rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white shadow"
+          >
+            Copy Latest
+          </button>
+          <button
+            onClick={handleCopyAll}
+            className="px-4 py-2 rounded-lg bg-purple-500 hover:bg-purple-600 text-white shadow"
+          >
+            Copy All
+          </button>
+          <button
+            onClick={handleClearMessages}
+            className="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white shadow"
+          >
+            Clear Local
+          </button>
+        </div>
+
         {/* Message List */}
         <motion.div
           initial={{ y: 20, opacity: 0 }}
@@ -110,7 +128,10 @@ const Dashboard = () => {
         >
           <MessageList key={refresh} />
         </motion.div>
-      </motion.div>
+      </main>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };

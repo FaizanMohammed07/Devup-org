@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { postMessage } from "../services/api";
+import { motion } from "framer-motion";
 
 const MessageForm = ({ onMessageSent }) => {
   const [title, setTitle] = useState("");
@@ -8,7 +9,7 @@ const MessageForm = ({ onMessageSent }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title || !body) return alert("Please fill all fields");
+    if (!title || !body) return alert("⚠️ Please fill all fields");
 
     const res = await postMessage({ title, body });
     setGeneratedMsg(
@@ -31,41 +32,63 @@ const MessageForm = ({ onMessageSent }) => {
 
   const handleCopy = () => {
     navigator.clipboard.writeText(generatedMsg);
-    alert("Message copied to clipboard!");
+    alert("✅ Message copied to clipboard!");
   };
 
   return (
-    <div className="p-4 bg-white rounded shadow-md mb-4">
-      <form onSubmit={handleSubmit}>
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.6 }}
+      className="p-6 bg-white/80 backdrop-blur-md rounded-2xl shadow-xl mb-6 border border-purple-200"
+    >
+      <form onSubmit={handleSubmit} className="space-y-4">
         <input
           type="text"
-          placeholder="Message Title"
+          placeholder="✨ Message Title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="border p-2 w-full mb-2 rounded"
+          className="border border-gray-300 p-3 w-full rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
         />
         <textarea
-          placeholder="Message Body"
+          placeholder="📝 Message Body"
           value={body}
           onChange={(e) => setBody(e.target.value)}
-          className="border p-2 w-full mb-2 rounded"
+          className="border border-gray-300 p-3 w-full rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+          rows="4"
         />
-        <button className="bg-blue-500 text-white px-4 py-2 rounded">OK</button>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          type="submit"
+          className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-lg font-bold shadow-lg hover:opacity-90 transition"
+        >
+          🚀 Post Message
+        </motion.button>
       </form>
 
       {generatedMsg && (
-        <div className="mt-4 p-4 bg-gray-100 rounded">
-          <h3 className="font-bold mb-2">Generated Message:</h3>
-          <pre className="whitespace-pre-wrap">{generatedMsg}</pre>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="mt-6 p-5 bg-gray-50 dark:bg-gray-700 rounded-xl shadow-inner"
+        >
+          <h3 className="font-bold mb-2 text-purple-600">
+            📢 Generated Message:
+          </h3>
+          <pre className="whitespace-pre-wrap text-gray-700 dark:text-gray-200 text-sm">
+            {generatedMsg}
+          </pre>
           <button
             onClick={handleCopy}
-            className="mt-2 bg-green-500 text-white px-4 py-2 rounded"
+            className="mt-3 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg shadow"
           >
-            Copy
+            📋 Copy
           </button>
-        </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 };
 
